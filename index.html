@@ -350,7 +350,13 @@
       "tags",
       "Tags"
     ];
-
+    
+    function isLikelyUrl(value) {
+      if (!value) return false;
+      const text = String(value).trim();
+      return /^https?:\/\/\S+$/i.test(text);
+    }
+    
     function formatColumnHeader(columnKey) {
       const cleaned = String(columnKey || "")
         .replace(/_/g, " ")
@@ -475,7 +481,18 @@
           section.appendChild(heading);
 
           const body = document.createElement("p");
-          body.textContent = col.value;
+          
+          if (isLikelyUrl(col.value)) {
+            const link = document.createElement("a");
+            link.href = col.value;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = "Open link";
+            body.appendChild(link);
+          } else {
+            body.textContent = col.value;
+          }
+
           section.appendChild(body);
 
           dynamicSectionsEl.appendChild(section);
@@ -606,5 +623,6 @@
   </script>
 </body>
 </html>
+
 
 
