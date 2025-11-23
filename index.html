@@ -49,19 +49,35 @@
     }
 
     label {
-      font-size: 0.9rem;
-      font-weight: 500;
-      margin-bottom: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 6px;
     }
 
     select {
-      padding: 8px 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid #ced4ff;
       font-size: 0.95rem;
       background: #fff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    }
+   
+    select:hover {
+      border-color: #9aa5ff;
+      background-color: #f9f9ff;
     }
 
+    select:focus-visible {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+      background-color: #fff;
+    }
+    
     .card {
       background: #fff;
       border-radius: 12px;
@@ -511,3 +527,4 @@
   </script>
 </body>
 </html>
+
