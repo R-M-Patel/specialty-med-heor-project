@@ -23,8 +23,8 @@
     }
 
     .page {
-      max-width: 960px;
       width: 100%;
+      max-width: 960px;
     }
 
     header {
@@ -42,16 +42,49 @@
     }
 
     .controls {
-      margin-bottom: 16px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .tag-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: #555;
+      align-items: center;
+    }
+
+    .tag-filter-pill {
+      border: none;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      background: #eef2ff;
+      color: #4338ca;
+      transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .tag-filter-pill--active {
+      background: #4338ca;
+      color: #eef2ff;
+      box-shadow: 0 0 0 1px rgba(67, 56, 202, 0.3);
+    }
+
+    .select-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     label {
       font-size: 0.8rem;
       font-weight: 600;
       text-transform: uppercase;
+      letter-spacing: 0.06em;
       color: #555;
       margin-bottom: 6px;
     }
@@ -65,7 +98,7 @@
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
       transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
     }
-   
+
     select:hover {
       border-color: #9aa5ff;
       background-color: #f9f9ff;
@@ -77,7 +110,7 @@
       box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
       background-color: #fff;
     }
-    
+
     .card {
       background: #fff;
       border-radius: 12px;
@@ -91,7 +124,7 @@
       width: 72px;
       height: 72px;
       border-radius: 8px;
-      background: #e5e5ea;
+      background: #f4f4f5;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -109,6 +142,9 @@
 
     .card__content {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .card__title {
@@ -116,21 +152,22 @@
     }
 
     .card__brand {
-      font-size: 1.3rem;
+      font-size: 1.05rem;
       font-weight: 600;
+      margin-bottom: 2px;
     }
 
     .card__generic {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       color: #555;
     }
 
     .card__section {
-      margin-top: 10px;
+      margin-top: 8px;
     }
 
     .card__section h3 {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       text-transform: uppercase;
       letter-spacing: 0.04em;
       color: #777;
@@ -152,48 +189,23 @@
     .tag-pill {
       display: inline-flex;
       align-items: center;
-      padding: 4px 8px;
+      padding: 3px 8px;
       border-radius: 999px;
-      background: #eef0ff;
-      font-size: 0.8rem;
-      color: #333;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 0.75rem;
+      white-space: nowrap;
     }
 
     .hint {
-      font-size: 0.9rem;
-      color: #666;
-      margin-top: 8px;
-    }
-
-    .tag-filters {
-      margin-bottom: 12px;
+      margin-top: 10px;
       font-size: 0.85rem;
-      color: #777;
+      color: #666;
     }
 
-    .tag-filter-pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: #f0f0f5;
-      font-size: 0.8rem;
-      color: #333;
-      margin-right: 6px;
-      margin-bottom: 6px;
-      cursor: pointer;
-      border: 1px solid transparent;
-    }
-
-    .tag-filter-pill--active {
-      border-color: #4b5cff;
-      background: #e4e6ff;
-      font-weight: 500;
-    }
-
-    @media (max-width: 640px) {
+    @media (max-width: 600px) {
       body {
-        padding: 16px;
+        padding: 12px;
       }
 
       .card {
@@ -242,30 +254,14 @@
           <div class="card__generic" id="med-generic">Choose a medication from the dropdown above.</div>
         </div>
 
-        <div class="card__section">
-          <h3>Indication</h3>
-          <p id="med-indication">–</p>
-        </div>
-
-        <div class="card__section">
-          <h3>Primary endpoints</h3>
-          <p id="med-endpoints">–</p>
-        </div>
-
-        <div class="card__section">
-          <h3>RWD outcomes</h3>
-          <p id="med-rwd">–</p>
-        </div>
-
-        <div class="card__section">
-          <h3>PRO measures</h3>
-          <p id="med-pro">–</p>
+        <div id="med-dynamic-sections">
+          <!-- Dynamic sections based on available columns will be rendered here -->
         </div>
 
         <div class="card__section">
           <h3>Tags</h3>
           <div class="tags" id="med-tags">
-            <!-- Tag pills will be inserted here -->
+            <!-- Tag pills for this medication will be inserted here -->
           </div>
         </div>
 
@@ -279,7 +275,7 @@
   <script>
     // --- Configuration ---
     const SHEET_URL =
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vRndNpqDuEn0juKL7mMzY4g8YcJXigRzUr_lsSvnjJ_cQXLnwz2gAXMv8j16_Ad1kANgF8Y3oiFRdS5/pub?gid=0&single=true&output=csv";
+      "PASTE_GOOGLE_SHEET_CSV_URL_HERE";
 
     // --- State ---
     let allMedications = [];      // full list from sheet
@@ -291,20 +287,17 @@
     const brandEl = document.getElementById("med-brand");
     const genericEl = document.getElementById("med-generic");
     const logoEl = document.getElementById("med-logo");
-    const indicationEl = document.getElementById("med-indication");
-    const endpointsEl = document.getElementById("med-endpoints");
-    const rwdEl = document.getElementById("med-rwd");
-    const proEl = document.getElementById("med-pro");
+    const dynamicSectionsEl = document.getElementById("med-dynamic-sections");
     const tagsEl = document.getElementById("med-tags");
     const hintEl = document.getElementById("med-hint");
     const tagFiltersEl = document.getElementById("tag-filters");
 
-    // --- Utility functions ---
+    // --- Data normalization ---
 
     function normalizeMedicationRow(row) {
-      // Map CSV row columns into the structure our UI expects
-      // Assumes header row:
-      // id, brand_name, generic_name, logo_url, indication, primary_endpoints, rwd_measures, pro_measures, tags
+      // Map CSV row columns into a structure our UI expects,
+      // but also keep the original row so we can dynamically render
+      // whatever columns are present in the sheet.
       const tagsString = row.tags || row.Tags || "";
       const tagsArray = tagsString
         .split(",")
@@ -312,16 +305,89 @@
         .filter(Boolean);
 
       return {
-        id: row.id || row.ID || row.Id || "",
-        brand_name: row.brand_name || row.Brand || row.Brand_name || "",
-        generic_name: row.generic_name || row.Generic || row.Generic_name || "",
-        logo_url: row.logo_url || "",
-        indication: row.indication || "",
-        primary_endpoints: row.primary_endpoints || "",
-        rwd_measures: row.rwd_measures || "",
-        pro_measures: row.pro_measures || "",
-        tags: tagsArray
+        // Core identity fields used in the UI
+        id: row.id || row.ID || row.Id || row["Med ID"] || "",
+        brand_name:
+          row.brand_name ||
+          row.Brand ||
+          row.Brand_name ||
+          row["Brand Name"] ||
+          row.Medication ||
+          "",
+        generic_name:
+          row.generic_name ||
+          row.Generic ||
+          row.Generic_name ||
+          row["Generic Name"] ||
+          "",
+        logo_url: row.logo_url || row.Logo || "",
+        tags: tagsArray,
+        // Keep the original row so we can iterate over all columns later
+        raw: row
       };
+    }
+
+    // Columns that we do NOT render as their own sections in the card.
+    // These are either used elsewhere in the UI (brand, generic, tags, etc.)
+    // or are purely technical identifiers.
+    const EXCLUDED_COLUMNS_FOR_DISPLAY = [
+      "id",
+      "ID",
+      "Id",
+      "Med ID",
+      "brand_name",
+      "Brand",
+      "Brand_name",
+      "Brand Name",
+      "Medication",
+      "generic_name",
+      "Generic",
+      "Generic_name",
+      "Generic Name",
+      "logo_url",
+      "Logo",
+      "Logo URL",
+      "logo",
+      "tags",
+      "Tags"
+    ];
+
+    function formatColumnHeader(columnKey) {
+      const cleaned = String(columnKey || "")
+        .replace(/_/g, " ")
+        .trim();
+
+      if (!cleaned) return "";
+
+      return cleaned
+        .split(" ")
+        .filter(Boolean)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    }
+
+    function getDisplayColumns(med) {
+      const raw = med && med.raw ? med.raw : {};
+      const columns = [];
+
+      for (const key in raw) {
+        if (!Object.prototype.hasOwnProperty.call(raw, key)) continue;
+        if (EXCLUDED_COLUMNS_FOR_DISPLAY.includes(key)) continue;
+
+        const value = raw[key];
+        if (value == null) continue;
+
+        const text = String(value).trim();
+        if (!text) continue;
+
+        columns.push({
+          key,
+          label: formatColumnHeader(key),
+          value: text
+        });
+      }
+
+      return columns;
     }
 
     function getUniqueTags(meds) {
@@ -348,7 +414,7 @@
 
       filteredMedications.forEach(med => {
         const opt = document.createElement("option");
-        opt.value = med.id;
+        opt.value = med.id || med.brand_name;
         opt.textContent = med.generic_name
           ? `${med.brand_name} (${med.generic_name})`
           : med.brand_name || med.id || "Unknown medication";
@@ -368,18 +434,17 @@
         brandEl.textContent = "No medication selected";
         genericEl.textContent = "Choose a medication from the dropdown above.";
         logoEl.innerHTML = "Logo";
-        indicationEl.textContent = "–";
-        endpointsEl.textContent = "–";
-        rwdEl.textContent = "–";
-        proEl.textContent = "–";
+        dynamicSectionsEl.innerHTML = "";
         tagsEl.innerHTML = "";
         hintEl.textContent = "Select a medication to see details.";
         return;
       }
 
+      // Core title area
       brandEl.textContent = med.brand_name || med.id || "Unknown medication";
       genericEl.textContent = med.generic_name || "";
 
+      // Logo
       if (med.logo_url) {
         logoEl.innerHTML = "";
         const img = document.createElement("img");
@@ -390,11 +455,35 @@
         logoEl.innerHTML = "Logo";
       }
 
-      indicationEl.textContent = med.indication || "–";
-      endpointsEl.textContent = med.primary_endpoints || "–";
-      rwdEl.textContent = med.rwd_measures || "–";
-      proEl.textContent = med.pro_measures || "–";
+      // Dynamic sections based on whatever columns are present
+      dynamicSectionsEl.innerHTML = "";
+      const columns = getDisplayColumns(med);
 
+      if (columns.length === 0) {
+        const section = document.createElement("div");
+        section.className = "card__section";
+        const p = document.createElement("p");
+        p.textContent = "No additional details available for this medication.";
+        section.appendChild(p);
+        dynamicSectionsEl.appendChild(section);
+      } else {
+        columns.forEach(col => {
+          const section = document.createElement("div");
+          section.className = "card__section";
+
+          const heading = document.createElement("h3");
+          heading.textContent = col.label || col.key;
+          section.appendChild(heading);
+
+          const body = document.createElement("p");
+          body.textContent = col.value;
+          section.appendChild(body);
+
+          dynamicSectionsEl.appendChild(section);
+        });
+      }
+
+      // Tag pills for this medication
       tagsEl.innerHTML = "";
       if (Array.isArray(med.tags) && med.tags.length > 0) {
         med.tags.forEach(tag => {
@@ -437,38 +526,28 @@
       });
     }
 
-    // --- Tag filter logic ---
-
-    function applyTagFilter() {
-      if (activeTags.size === 0) {
-        filteredMedications = [...allMedications];
-      } else {
-        filteredMedications = allMedications.filter(med => {
-          if (!Array.isArray(med.tags) || med.tags.length === 0) return false;
-          // Include meds that have ALL selected tags
-          return Array.from(activeTags).every(tag => med.tags.includes(tag));
-        });
-      }
-
-      renderDropdown();
-      renderTagFilters();
-      renderMedication(null);
-    }
-
     function toggleTagFilter(tag) {
       if (activeTags.has(tag)) {
         activeTags.delete(tag);
       } else {
         activeTags.add(tag);
       }
-      applyTagFilter();
-    }
 
-    // --- Event handlers ---
+      if (activeTags.size === 0) {
+        filteredMedications = [...allMedications];
+      } else {
+        filteredMedications = allMedications.filter(med =>
+          med.tags && med.tags.some(t => activeTags.has(t))
+        );
+      }
 
-    function onMedSelectChange() {
+      renderTagFilters();
+      renderDropdown();
+
       const selectedId = medSelectEl.value;
-      const med = filteredMedications.find(m => m.id === selectedId);
+      const med = filteredMedications.find(m =>
+        (m.id || m.brand_name) === selectedId
+      );
       renderMedication(med || null);
     }
 
@@ -490,7 +569,7 @@
 
           allMedications = results.data
             .map(row => normalizeMedicationRow(row))
-            .filter(med => med.id && med.brand_name); // basic sanity filter
+            .filter(med => med.brand_name || med.id); // basic sanity filter
 
           if (allMedications.length === 0) {
             tagFiltersEl.textContent = "No valid medication rows after parsing.";
@@ -500,19 +579,20 @@
 
           filteredMedications = [...allMedications];
 
-          renderDropdown();
           renderTagFilters();
+          renderDropdown();
           renderMedication(null);
 
+          tagFiltersEl.textContent = "";
           medSelectEl.disabled = false;
-          medSelectEl.addEventListener("change", onMedSelectChange);
 
-          tagFiltersEl.insertAdjacentHTML(
-            "beforeend",
-            ""
-          );
-
-          console.log("Loaded medications from sheet:", allMedications);
+          medSelectEl.addEventListener("change", () => {
+            const selectedId = medSelectEl.value;
+            const med = filteredMedications.find(m =>
+              (m.id || m.brand_name) === selectedId
+            );
+            renderMedication(med || null);
+          });
         },
         error: function(err) {
           console.error("Error loading CSV:", err);
@@ -527,4 +607,3 @@
   </script>
 </body>
 </html>
-
