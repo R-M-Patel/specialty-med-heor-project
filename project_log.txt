@@ -4,11 +4,14 @@ This log records progress, milestones, issues, and next steps.
 It’s the single source of truth so I can resume work with ai platforms anytime.
 
 
-Milestone 0 — Project Setup  [incomplete]
-Milestone 1 — Google Sheet created + published [incomplete]
-Milestone 2 — Static page with hardcoded data  [incomplete]
-Milestone 3 — Connected live Google Sheet [incomplete] 
-Milestone 4 — Tag extraction + filtering  [incomplete]
+site is working via pages, updating with live spreadsheet
+
+Milestone 0 — Project Setup  [complete]
+Milestone 1 — Google Sheet created + published [complete]
+Milestone 2 — Static page with hardcoded data  [complete]
+Milestone 3 — Connected live Google Sheet [complete] 
+Milestone 4 — Tag extraction + filtering  [incomplete, not necessary]
 Milestone 5 — Styling + UX polish  [incomplete]
 Milestone 6 — GitHub Pages deployed  [incomplete]
 Milestone 7 — README + demo script + interview story [incomplete]
+
