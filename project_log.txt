@@ -4,13 +4,15 @@ This log records progress, milestones, issues, and next steps.
 It’s the single source of truth so I can resume work with ai platforms anytime.
 
 Version 2 
+Version 2 - live table updates based on columns/data in google sheet
 Milestone 1 - Make the website update to table changes
 Milestone 2 - Link to live rxnorm label page
 
 updated ux to be cleaner, deployed webpage
 site is working via pages, updating with live spreadsheet
 
-Version1 complete
+Version-1 static table pulled from google sheet
+Version-1 complete
 Milestone 0 — Project Setup  [complete]
 Milestone 1 — Google Sheet created + published [complete]
 Milestone 2 — Static page with hardcoded data  [complete]
@@ -19,5 +21,6 @@ Milestone 4 — Tag extraction + filtering  [incomplete, not necessary]
 Milestone 5 — Styling + UX polish  [progressing/complete for initial]
 Milestone 6 — GitHub Pages deployed  [complete]
 Milestone 7 — README + demo script + interview story [complete]
+
 
 
