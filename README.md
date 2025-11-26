@@ -11,14 +11,15 @@ This project was built as a portfolio artifact to demonstrate:
 
 ## Live Demo
 
-(Will be added after GitHub Pages is set up and verified)
+https://r-m-patel.github.io/specialty-med-heor-project/
 
 ## Project Log
 
-See [`project_log.md`](./project_log.md) for milestone tracking, progress, and implementation history.
+Using a log for milestone tracking, progress, and implementation history.
 
 ## Tech Stack
 
 - HTML, CSS, vanilla JavaScript
 - Google Sheets (published as CSV/JSON)
 - GitHub Pages for static hosting
+
