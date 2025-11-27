@@ -372,6 +372,56 @@
       const text = String(value).trim();
       return /^https?:\/\/\S+$/i.test(text);
     }
+
+    // Render Markdown-style [text](url) links inside freeform text.
+    function buildMarkdownNodes(text) {
+      const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+      const nodes = [];
+      let lastIndex = 0;
+      let match;
+
+      while ((match = pattern.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+          nodes.push(document.createTextNode(text.slice(lastIndex, match.index)));
+        }
+        const link = document.createElement("a");
+        link.href = match[2];
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = match[1];
+        nodes.push(link);
+        lastIndex = pattern.lastIndex;
+      }
+
+      if (nodes.length === 0) return null;
+      if (lastIndex < text.length) {
+        nodes.push(document.createTextNode(text.slice(lastIndex)));
+      }
+      return nodes;
+    }
+
+    function renderValueInto(element, rawValue) {
+      const text = String(rawValue || "").trim();
+      if (!text) return;
+
+      const markdownNodes = buildMarkdownNodes(text);
+      if (markdownNodes) {
+        markdownNodes.forEach(node => element.appendChild(node));
+        return;
+      }
+
+      if (isLikelyUrl(text)) {
+        const link = document.createElement("a");
+        link.href = text;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "Open link";
+        element.appendChild(link);
+        return;
+      }
+
+      element.textContent = text;
+    }
     
     function formatColumnHeader(columnKey) {
       const cleaned = String(columnKey || "")
@@ -516,17 +566,7 @@
           section.appendChild(heading);
 
           const body = document.createElement("p");
-          
-          if (isLikelyUrl(col.value)) {
-            const link = document.createElement("a");
-            link.href = col.value;
-            link.target = "_blank";
-            link.rel = "noopener noreferrer";
-            link.textContent = "Open link";
-            body.appendChild(link);
-          } else {
-            body.textContent = col.value;
-          }
+          renderValueInto(body, col.value);
 
           section.appendChild(body);
 
