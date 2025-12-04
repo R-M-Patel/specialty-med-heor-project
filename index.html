@@ -760,6 +760,7 @@
             parsed.forEach(entry => {
               const li = document.createElement("li");
               const citationText = entry.citation || entry.title || entry.reference || entry.url || "";
+              const description = entry.description || entry.notes || entry.summary || "";
               if (entry.url) {
                 const link = document.createElement("a");
                 link.href = entry.url;
@@ -769,6 +770,12 @@
                 li.appendChild(link);
               } else if (citationText) {
                 linkifyTextNodes(citationText).forEach(node => li.appendChild(node));
+              }
+              if (description) {
+                if (li.childNodes.length) {
+                  li.appendChild(document.createTextNode(" — "));
+                }
+                linkifyTextNodes(description).forEach(node => li.appendChild(node));
               }
               if (entry.category) {
                 const badge = document.createElement("span");
@@ -794,12 +801,56 @@
           const ul = document.createElement("ul");
           parsed.forEach(entry => {
             const li = document.createElement("li");
+            const label =
+              entry.title ||
+              entry.name ||
+              entry.opportunity ||
+              entry.indication ||
+              entry.label ||
+              entry.study;
+            const description =
+              entry.description ||
+              entry.notes ||
+              entry.detail ||
+              entry.summary ||
+              entry.comment;
+            const timing = entry.approval_date || entry.date || entry.year || entry.timeline;
+            const badgeText = entry.category || entry.phase || entry.type;
             const parts = [];
-            if (entry.indication) parts.push(entry.indication);
-            if (entry.approval_date) parts.push(`Approval: ${entry.approval_date}`);
-            if (entry.notes) parts.push(entry.notes);
-            const text = parts.join(" — ") || JSON.stringify(entry);
+
+            if (label && description) {
+              parts.push(`${label} — ${description}`);
+            } else if (label || description) {
+              parts.push(label || description);
+            }
+
+            if (timing) parts.push(timing);
+
+            const text = parts.join(" | ") || JSON.stringify(entry);
             linkifyTextNodes(text).forEach(node => li.appendChild(node));
+
+            if (entry.url && !li.querySelector("a")) {
+              const link = document.createElement("a");
+              link.href = entry.url;
+              link.target = "_blank";
+              link.rel = "noopener noreferrer";
+              link.style.marginLeft = "6px";
+              link.textContent = "Link";
+              li.appendChild(link);
+            }
+
+            if (badgeText) {
+              const badge = document.createElement("span");
+              badge.style.display = "inline-block";
+              badge.style.marginLeft = "6px";
+              badge.style.padding = "2px 8px";
+              badge.style.borderRadius = "10px";
+              badge.style.background = "rgba(30,136,229,0.08)";
+              badge.style.color = "#1f2a44";
+              badge.style.fontSize = "0.78rem";
+              badge.textContent = badgeText;
+              li.appendChild(badge);
+            }
             ul.appendChild(li);
           });
           element.appendChild(ul);
