@@ -290,6 +290,9 @@
       font-size: 0.95rem;
       line-height: 1.55;
       color: #314468;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      hyphens: auto;
     }
 
     .card__section ul {
@@ -297,6 +300,9 @@
       padding-left: 4px;
       color: #314468;
       line-height: 1.5;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      hyphens: auto;
     }
 
     .card__section dl {
@@ -312,6 +318,129 @@
     .card__section dd {
       margin: 2px 0 6px 12px;
       line-height: 1.5;
+    }
+
+    .report-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .report-section {
+      background: #fdfefe;
+      border: 1px solid rgba(31, 42, 68, 0.12);
+      border-radius: 14px;
+      padding: 16px 16px 18px;
+      box-shadow: 0 10px 30px rgba(31, 66, 125, 0.08);
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .section-number {
+      color: #1e5fa8;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.01em;
+      padding-right: 6px;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1f2a44;
+      letter-spacing: -0.01em;
+    }
+
+    .section-title span {
+      display: inline-block;
+      padding-bottom: 3px;
+      border-bottom: 2px solid rgba(30, 136, 229, 0.5);
+    }
+
+    .data-table-wrapper {
+      overflow: hidden;
+      border-radius: 10px;
+      border: 1px solid rgba(30, 136, 229, 0.18);
+      background: #fff;
+      margin-bottom: 12px;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(30, 136, 229, 0.12);
+      vertical-align: top;
+    }
+
+    .data-table th {
+      width: 32%;
+      text-align: left;
+      background: linear-gradient(90deg, rgba(30, 136, 229, 0.12), rgba(30, 136, 229, 0.06));
+      color: #1f2a44;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .data-table td {
+      color: #314468;
+      background: #fff;
+    }
+
+    .subsection {
+      margin-top: 10px;
+    }
+
+    .subsection h4 {
+      font-size: 1rem;
+      color: #1e5fa8;
+      margin-bottom: 6px;
+      letter-spacing: -0.005em;
+    }
+
+    .subsection__body {
+      color: #314468;
+      line-height: 1.55;
+      font-size: 0.96rem;
+    }
+
+    .subsection__body ul {
+      margin: 8px 0 8px 18px;
+      padding-left: 4px;
+    }
+
+    .subsection__body li {
+      margin-bottom: 4px;
+    }
+
+    .link-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(30, 136, 229, 0.08);
+      border: 1px solid rgba(30, 136, 229, 0.18);
+      border-radius: 12px;
+      color: #0f2d63;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 10px 22px rgba(43, 71, 149, 0.08);
+    }
+
+    .link-chip:hover {
+      background: rgba(30, 136, 229, 0.14);
+      border-color: rgba(30, 136, 229, 0.3);
+      color: #0d6fc2;
     }
 
     .tags {
@@ -355,6 +484,18 @@
         width: 64px;
         height: 64px;
       }
+
+      .report-section {
+        padding: 14px;
+      }
+
+      .section-heading {
+        flex-wrap: wrap;
+      }
+
+      .data-table th {
+        width: 44%;
+      }
     }
   </style>
 
@@ -394,7 +535,7 @@
           <div class="card__generic" id="med-generic">Choose a medication from the dropdown above.</div>
         </div>
 
-        <div id="med-dynamic-sections">
+        <div id="med-dynamic-sections" class="report-grid">
           <!-- Dynamic sections based on available columns will be rendered here -->
         </div>
 
@@ -492,6 +633,10 @@
       "ID",
       "Id",
       "Med ID",
+      "drug_id",
+      "Drug ID",
+      "Drug_Id",
+      "DrugId",
       "brand_name",
       "Brand",
       "Brand_name",
@@ -507,6 +652,20 @@
       "logo",
       "tags",
       "Tags",
+      "manufacturer",
+      "Manufacturer",
+      "indication",
+      "Indication",
+      "DailyMed_drug_label_link",
+      "dosing",
+      "Dosing",
+      "primary_endpoints",
+      "Primary Endpoints",
+      "rwd_measures",
+      "RWD Measures",
+      "pro_measures",
+      "PRO Measures",
+      "",
       ...STANDARD_SECTIONS.map(section => section.key)
     ];
     
@@ -514,6 +673,201 @@
       if (!value) return false;
       const text = String(value).trim();
       return /^https?:\/\/\S+$/i.test(text);
+    }
+
+    function linkifyTextNodes(text) {
+      const nodes = [];
+      const urlPattern = /https?:\/\/[^\s<>"']+/gi;
+      let lastIndex = 0;
+      let match;
+
+      while ((match = urlPattern.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+          nodes.push(document.createTextNode(text.slice(lastIndex, match.index)));
+        }
+        let url = match[0];
+        const trailing = url.match(/[.,);]+$/);
+        if (trailing) {
+          url = url.slice(0, -trailing[0].length);
+        }
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = url;
+        nodes.push(a);
+
+        if (trailing) {
+          nodes.push(document.createTextNode(trailing[0]));
+        }
+        lastIndex = urlPattern.lastIndex;
+      }
+
+      if (lastIndex < text.length) {
+        nodes.push(document.createTextNode(text.slice(lastIndex)));
+      }
+
+      return nodes.length ? nodes : [document.createTextNode(text)];
+    }
+
+    function tryParseJson(text) {
+      const trimmed = String(text || "").trim();
+      if (!trimmed || (trimmed[0] !== "[" && trimmed[0] !== "{")) return null;
+
+      // Normalize common “JSON-ish” issues: single quotes and smart quotes.
+      const smartQuoteFix = trimmed.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, "\"");
+      const trailingCommaFix = str => str.replace(/,\s*([}\]])/g, "$1");
+      const attempts = [
+        smartQuoteFix,
+        smartQuoteFix.replace(/'([^']*)'/g, "\"$1\""),
+        trailingCommaFix(smartQuoteFix),
+        trailingCommaFix(smartQuoteFix.replace(/'([^']*)'/g, "\"$1\""))
+      ];
+
+      for (const attempt of attempts) {
+        try {
+          return JSON.parse(attempt);
+        } catch (e) {
+          continue;
+        }
+      }
+
+      return null;
+    }
+
+    function renderJsonValue(element, parsed) {
+      if (Array.isArray(parsed)) {
+        if (parsed.length === 0) return false;
+
+        // Simple array of strings
+        if (parsed.every(item => typeof item === "string")) {
+          const ul = document.createElement("ul");
+          parsed.forEach(item => {
+            const li = document.createElement("li");
+            linkifyTextNodes(item).forEach(node => li.appendChild(node));
+            ul.appendChild(li);
+          });
+          element.appendChild(ul);
+          return true;
+        }
+
+        // Array of objects (e.g., indications with notes/approval dates)
+        if (parsed.every(item => item && typeof item === "object" && !Array.isArray(item))) {
+          const hasCitation = parsed.some(entry => entry && (entry.citation || entry.url));
+          if (hasCitation) {
+            const ul = document.createElement("ul");
+            parsed.forEach(entry => {
+              const li = document.createElement("li");
+              const citationText = entry.citation || entry.title || entry.reference || entry.url || "";
+              if (entry.url) {
+                const link = document.createElement("a");
+                link.href = entry.url;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.textContent = citationText || entry.url;
+                li.appendChild(link);
+              } else if (citationText) {
+                linkifyTextNodes(citationText).forEach(node => li.appendChild(node));
+              }
+              if (entry.category) {
+                const badge = document.createElement("span");
+                badge.style.display = "inline-block";
+                badge.style.marginLeft = "6px";
+                badge.style.padding = "2px 8px";
+                badge.style.borderRadius = "10px";
+                badge.style.background = "rgba(30,136,229,0.08)";
+                badge.style.color = "#1f2a44";
+                badge.style.fontSize = "0.78rem";
+                badge.textContent = entry.category;
+                li.appendChild(badge);
+              }
+              if (!li.textContent.trim() && !li.querySelector("a")) {
+                li.textContent = JSON.stringify(entry);
+              }
+              ul.appendChild(li);
+            });
+            element.appendChild(ul);
+            return true;
+          }
+
+          const ul = document.createElement("ul");
+          parsed.forEach(entry => {
+            const li = document.createElement("li");
+            const parts = [];
+            if (entry.indication) parts.push(entry.indication);
+            if (entry.approval_date) parts.push(`Approval: ${entry.approval_date}`);
+            if (entry.notes) parts.push(entry.notes);
+            const text = parts.join(" — ") || JSON.stringify(entry);
+            linkifyTextNodes(text).forEach(node => li.appendChild(node));
+            ul.appendChild(li);
+          });
+          element.appendChild(ul);
+          return true;
+        }
+      }
+
+      // Plain object -> definition list
+      if (parsed && typeof parsed === "object") {
+        const dl = document.createElement("dl");
+        Object.entries(parsed).forEach(([key, val]) => {
+          const dt = document.createElement("dt");
+          dt.textContent = formatColumnHeader(key);
+          const dd = document.createElement("dd");
+          renderValueInto(dd, val);
+          dl.appendChild(dt);
+          dl.appendChild(dd);
+        });
+        element.appendChild(dl);
+        return true;
+      }
+
+      return false;
+    }
+
+    function buildSafeNodesFromHtml(text) {
+      const trimmed = String(text || "").trim();
+      if (!/[<>]/.test(trimmed)) return null;
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(trimmed, "text/html");
+      const frag = document.createDocumentFragment();
+
+      function walk(node, target) {
+        node.childNodes.forEach(child => {
+          if (child.nodeType === Node.TEXT_NODE) {
+            target.appendChild(document.createTextNode(child.textContent));
+          } else if (child.nodeType === Node.ELEMENT_NODE) {
+            const tag = child.tagName.toLowerCase();
+            if (tag === "a") {
+              const a = document.createElement("a");
+              const href = child.getAttribute("href") || child.textContent;
+              if (href) {
+                a.href = href;
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+              }
+              walk(child, a);
+              target.appendChild(a);
+            } else if (tag === "br") {
+              target.appendChild(document.createElement("br"));
+            } else if (tag === "ul" || tag === "ol") {
+              const list = document.createElement(tag);
+              walk(child, list);
+              target.appendChild(list);
+            } else if (tag === "li") {
+              const li = document.createElement("li");
+              walk(child, li);
+              target.appendChild(li);
+            } else {
+              walk(child, target);
+            }
+          }
+        });
+      }
+
+      walk(doc.body, frag);
+      return frag.childNodes.length ? frag : null;
     }
 
     // Render Markdown-style [text](url) links inside freeform text.
@@ -546,7 +900,7 @@
     function buildNodesForSegment(segmentText) {
       const mdNodes = buildMarkdownNodes(segmentText);
       if (mdNodes) return mdNodes;
-      return [document.createTextNode(segmentText)];
+      return linkifyTextNodes(segmentText);
     }
 
     function formatTextToNodes(text) {
@@ -585,12 +939,10 @@
       const looksLikeBullets = lines.some(line => bulletPattern.test(line));
       const bulletLines = looksLikeBullets ? lines.map(line => line.replace(bulletPattern, "").trim()).filter(Boolean) : [];
       const listCandidates =
-        (looksLikeBullets ? bulletLines : []).length >= 3
+        (looksLikeBullets && bulletLines.length >= 3)
           ? bulletLines
-          : semicolonSegments.length >= 3 && semicolonSegments.every(seg => seg.length <= 120)
+          : (semicolonSegments.length >= 3 && semicolonSegments.every(seg => seg.length <= 120))
           ? semicolonSegments
-          : lines.length >= 3 && lines.every(seg => seg.length <= 160)
-          ? lines
           : [];
 
       if (listCandidates.length >= 3) {
@@ -610,6 +962,17 @@
       const text = String(rawValue || "").trim();
       if (!text) return;
 
+      const parsedJson = tryParseJson(text);
+      if (parsedJson && renderJsonValue(element, parsedJson)) {
+        return;
+      }
+
+      const htmlNodes = buildSafeNodesFromHtml(text);
+      if (htmlNodes) {
+        element.appendChild(htmlNodes);
+        return;
+      }
+
       if (USE_AUTO_LISTS) {
         const formattedNodes = formatTextToNodes(text);
         if (formattedNodes && formattedNodes.length > 0) {
@@ -624,17 +987,7 @@
         return;
       }
 
-      if (isLikelyUrl(text)) {
-        const link = document.createElement("a");
-        link.href = text;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = "Open link";
-        element.appendChild(link);
-        return;
-      }
-
-      element.textContent = text;
+      linkifyTextNodes(text).forEach(node => element.appendChild(node));
     }
     
     function formatColumnHeader(columnKey) {
@@ -691,6 +1044,190 @@
       }
 
       return columns;
+    }
+
+    function getFirstAvailable(raw, keys) {
+      if (!raw) return "";
+      for (const key of keys) {
+        if (!Object.prototype.hasOwnProperty.call(raw, key)) continue;
+        const value = raw[key];
+        if (value == null) continue;
+        const text = String(value).trim();
+        if (text) return text;
+      }
+      return "";
+    }
+
+    function buildSectionHeading(sectionNumber, title) {
+      const heading = document.createElement("div");
+      heading.className = "section-heading";
+
+      const number = document.createElement("div");
+      number.className = "section-number";
+      number.textContent = `${sectionNumber}.`;
+
+      const titleEl = document.createElement("div");
+      titleEl.className = "section-title";
+      const span = document.createElement("span");
+      span.textContent = title;
+      titleEl.appendChild(span);
+
+      heading.appendChild(number);
+      heading.appendChild(titleEl);
+      return heading;
+    }
+
+    function buildDataTable(rows) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "data-table-wrapper";
+      const table = document.createElement("table");
+      table.className = "data-table";
+
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+        const th = document.createElement("th");
+        th.textContent = row.label;
+        const td = document.createElement("td");
+        renderValueInto(td, row.value);
+        tr.appendChild(th);
+        tr.appendChild(td);
+        table.appendChild(tr);
+      });
+
+      wrapper.appendChild(table);
+      return wrapper;
+    }
+
+    function buildSubsection(title, value) {
+      const container = document.createElement("div");
+      container.className = "subsection";
+      const h4 = document.createElement("h4");
+      h4.textContent = title;
+      const body = document.createElement("div");
+      body.className = "subsection__body";
+      renderValueInto(body, value);
+      container.appendChild(h4);
+      container.appendChild(body);
+      return container;
+    }
+
+    function buildLinkSubsection(title, url) {
+      const container = document.createElement("div");
+      container.className = "subsection";
+      const h4 = document.createElement("h4");
+      h4.textContent = title;
+      const body = document.createElement("div");
+      body.className = "subsection__body";
+      if (isLikelyUrl(url)) {
+        const link = document.createElement("a");
+        link.className = "link-chip";
+        link.href = url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "View on DailyMed";
+        body.appendChild(link);
+      } else {
+        renderValueInto(body, url);
+      }
+      container.appendChild(h4);
+      container.appendChild(body);
+      return container;
+    }
+
+    function buildValueSection(sectionNumber, title, value) {
+      const text = String(value || "").trim();
+      if (!text) return null;
+      const section = document.createElement("section");
+      section.className = "report-section";
+      section.appendChild(buildSectionHeading(sectionNumber, title));
+      const body = document.createElement("div");
+      body.className = "subsection__body";
+      renderValueInto(body, text);
+      section.appendChild(body);
+      return section;
+    }
+
+    function collectDrugIdentificationRows(med) {
+      const raw = med.raw || {};
+      const fields = [
+        { label: "Generic Name", value: med.generic_name },
+        { label: "Brand Name", value: med.brand_name },
+        { label: "Manufacturer", value: getFirstAvailable(raw, ["manufacturer", "Manufacturer"]) },
+        { label: "Indication", value: getFirstAvailable(raw, ["indication", "Indication"]) },
+        { label: "Dosing Regimen", value: getFirstAvailable(raw, ["dosing", "Dosing"]) },
+        { label: "Primary Endpoints", value: getFirstAvailable(raw, ["primary_endpoints", "Primary Endpoints"]) },
+        { label: "RWD Measures", value: getFirstAvailable(raw, ["rwd_measures", "RWD Measures"]) },
+        { label: "PRO Measures", value: getFirstAvailable(raw, ["pro_measures", "PRO Measures"]) }
+      ];
+
+      return fields
+        .map(item => {
+          const text = String(item.value || "").trim();
+          return text ? { label: item.label, value: text } : null;
+        })
+        .filter(Boolean);
+    }
+
+    function renderDrugIdentificationSection(med, sectionNumber) {
+      const raw = med.raw || {};
+      const rows = collectDrugIdentificationRows(med);
+      const moa = getFirstAvailable(raw, [
+        "section_drug_identification",
+        "mechanism_of_action",
+        "Mechanism of Action"
+      ]);
+      const dailyMed = getFirstAvailable(raw, [
+        "DailyMed_drug_label_link",
+        "dailymed_drug_label_link",
+        "DailyMed",
+        "DailyMed Link"
+      ]);
+
+      if (rows.length === 0 && !moa && !dailyMed) return null;
+
+      const section = document.createElement("section");
+      section.className = "report-section";
+      section.appendChild(buildSectionHeading(sectionNumber, "Drug Identification"));
+
+      if (rows.length > 0) {
+        section.appendChild(buildDataTable(rows));
+      }
+
+      if (moa) {
+        section.appendChild(buildSubsection("Mechanism of Action", moa));
+      }
+
+      if (dailyMed) {
+        section.appendChild(buildLinkSubsection("DailyMed Reference", dailyMed));
+      }
+
+      return section;
+    }
+
+    function renderDiseaseContextSection(med, sectionNumber) {
+      const raw = med.raw || {};
+      const overview = getFirstAvailable(raw, ["section_disease_context", "disease_context"]);
+      const epidemiology = getFirstAvailable(raw, [
+        "epidemiology",
+        "incidence_prevalence",
+        "disease_epidemiology"
+      ]);
+
+      if (!overview && !epidemiology) return null;
+
+      const section = document.createElement("section");
+      section.className = "report-section";
+      section.appendChild(buildSectionHeading(sectionNumber, "Disease Context & Epidemiology"));
+
+      if (overview) {
+        section.appendChild(buildSubsection("Disease Overview", overview));
+      }
+
+      if (epidemiology) {
+        section.appendChild(buildSubsection("Epidemiology", epidemiology));
+      }
+
+      return section;
     }
 
     function getUniqueTags(meds) {
@@ -761,33 +1298,60 @@
 
       // Dynamic sections based on standardized schema first, then any extra columns
       dynamicSectionsEl.innerHTML = "";
-      const standardSections = getStandardSections(med);
-      const columns = [...standardSections, ...getDisplayColumns(med)];
+      let sectionNumber = 1;
+      const sections = [];
 
-      if (columns.length === 0) {
-        const section = document.createElement("div");
-        section.className = "card__section";
-        const p = document.createElement("p");
-        p.textContent = "No additional details available for this medication.";
-        section.appendChild(p);
-        dynamicSectionsEl.appendChild(section);
-      } else {
-        columns.forEach(col => {
-          const section = document.createElement("div");
-          section.className = "card__section";
-
-          const heading = document.createElement("h3");
-          heading.textContent = col.label || col.key;
-          section.appendChild(heading);
-
-          const body = document.createElement("p");
-          renderValueInto(body, col.value);
-
-          section.appendChild(body);
-
-          dynamicSectionsEl.appendChild(section);
-        });
+      const drugIdSection = renderDrugIdentificationSection(med, sectionNumber);
+      if (drugIdSection) {
+        sections.push(drugIdSection);
+        sectionNumber += 1;
       }
+
+      const diseaseSection = renderDiseaseContextSection(med, sectionNumber);
+      if (diseaseSection) {
+        sections.push(diseaseSection);
+        sectionNumber += 1;
+      }
+
+      const narrativeOrder = [
+        { key: "section_drug_development_timeline", label: "Drug Development & Regulatory Timeline" },
+        { key: "section_clinical_evidence", label: "Clinical Evidence" },
+        { key: "section_heor", label: "HEOR" },
+        { key: "section_rwe", label: "Real-World Evidence" },
+        { key: "section_pros", label: "PROs" },
+        { key: "section_comparative_positioning", label: "Comparative Positioning" },
+        { key: "section_payer_landscape", label: "Payer Landscape" },
+        { key: "section_research_opportunities", label: "Research Opportunities / Trial-to-RWE Gap" }
+      ];
+
+      narrativeOrder.forEach(entry => {
+        const section = buildValueSection(sectionNumber, entry.label, med.raw ? med.raw[entry.key] : "");
+        if (section) {
+          sections.push(section);
+          sectionNumber += 1;
+        }
+      });
+
+      const extraColumns = getDisplayColumns(med);
+      extraColumns.forEach(col => {
+        const section = buildValueSection(sectionNumber, col.label || col.key, col.value);
+        if (section) {
+          sections.push(section);
+          sectionNumber += 1;
+        }
+      });
+
+      if (sections.length === 0) {
+        const empty = document.createElement("section");
+        empty.className = "report-section";
+        const body = document.createElement("div");
+        body.className = "subsection__body";
+        body.textContent = "No additional details available for this medication.";
+        empty.appendChild(body);
+        sections.push(empty);
+      }
+
+      sections.forEach(section => dynamicSectionsEl.appendChild(section));
 
       // Tag pills for this medication
       tagsEl.innerHTML = "";
