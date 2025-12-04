@@ -290,6 +290,9 @@
       font-size: 0.95rem;
       line-height: 1.55;
       color: #314468;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      hyphens: auto;
     }
 
     .card__section ul {
@@ -297,6 +300,9 @@
       padding-left: 4px;
       color: #314468;
       line-height: 1.5;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      hyphens: auto;
     }
 
     .card__section dl {
@@ -555,11 +561,23 @@
     function tryParseJson(text) {
       const trimmed = String(text || "").trim();
       if (!trimmed || (trimmed[0] !== "[" && trimmed[0] !== "{")) return null;
-      try {
-        return JSON.parse(trimmed);
-      } catch (e) {
-        return null;
+
+      // Normalize common “JSON-ish” issues: single quotes and smart quotes.
+      const smartQuoteFix = trimmed.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, "\"");
+      const attempts = [
+        smartQuoteFix,
+        smartQuoteFix.replace(/'([^']*)'/g, "\"$1\"")
+      ];
+
+      for (const attempt of attempts) {
+        try {
+          return JSON.parse(attempt);
+        } catch (e) {
+          continue;
+        }
       }
+
+      return null;
     }
 
     function renderJsonValue(element, parsed) {
@@ -612,6 +630,51 @@
       }
 
       return false;
+    }
+
+    function buildSafeNodesFromHtml(text) {
+      const trimmed = String(text || "").trim();
+      if (!/[<>]/.test(trimmed)) return null;
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(trimmed, "text/html");
+      const frag = document.createDocumentFragment();
+
+      function walk(node, target) {
+        node.childNodes.forEach(child => {
+          if (child.nodeType === Node.TEXT_NODE) {
+            target.appendChild(document.createTextNode(child.textContent));
+          } else if (child.nodeType === Node.ELEMENT_NODE) {
+            const tag = child.tagName.toLowerCase();
+            if (tag === "a") {
+              const a = document.createElement("a");
+              const href = child.getAttribute("href") || child.textContent;
+              if (href) {
+                a.href = href;
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+              }
+              walk(child, a);
+              target.appendChild(a);
+            } else if (tag === "br") {
+              target.appendChild(document.createElement("br"));
+            } else if (tag === "ul" || tag === "ol") {
+              const list = document.createElement(tag);
+              walk(child, list);
+              target.appendChild(list);
+            } else if (tag === "li") {
+              const li = document.createElement("li");
+              walk(child, li);
+              target.appendChild(li);
+            } else {
+              walk(child, target);
+            }
+          }
+        });
+      }
+
+      walk(doc.body, frag);
+      return frag.childNodes.length ? frag : null;
     }
 
     // Render Markdown-style [text](url) links inside freeform text.
@@ -710,6 +773,12 @@
 
       const parsedJson = tryParseJson(text);
       if (parsedJson && renderJsonValue(element, parsedJson)) {
+        return;
+      }
+
+      const htmlNodes = buildSafeNodesFromHtml(text);
+      if (htmlNodes) {
+        element.appendChild(htmlNodes);
         return;
       }
 
