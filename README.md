@@ -15,11 +15,16 @@ https://r-m-patel.github.io/specialty-med-heor-project/
 
 ## Project Log
 
-Using a log for milestone tracking, progress, and implementation history.
+Using a log for milestone tracking, progress, and implementation history. 
+
+## Version
+
+Verion 4 - Latest, static, stable build
 
 ## Tech Stack
 
 - HTML, CSS, vanilla JavaScript
 - Google Sheets (published as CSV/JSON)
 - GitHub Pages for static hosting
+
 
