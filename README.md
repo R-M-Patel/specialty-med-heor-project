@@ -2,6 +2,7 @@
 
 A minimal, static, desktop-first web application that displays specialty / rare / orphan medications
 using a dropdown selector and a clean info card UI. Data is powered by a Google Sheet published as CSV.
+For educational/entertainment purposes only, no accuracy implied or intended.
 
 This project was built as a portfolio artifact to demonstrate:
 - Real-world data (RWD) and PRO awareness in specialty pharmacy
@@ -26,5 +27,6 @@ Verion 4 - Latest, static, stable build
 - HTML, CSS, vanilla JavaScript
 - Google Sheets (published as CSV/JSON)
 - GitHub Pages for static hosting
+
 
 
