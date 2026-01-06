@@ -397,6 +397,31 @@
       background: #fff;
     }
 
+    .data-table--matrix {
+      table-layout: auto;
+    }
+
+    .data-table--matrix th {
+      width: auto;
+      text-align: left;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .data-table--matrix td,
+    .data-table--matrix th {
+      border-right: 1px solid rgba(30, 136, 229, 0.08);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      hyphens: auto;
+    }
+
+    .data-table--matrix td:last-child,
+    .data-table--matrix th:last-child {
+      border-right: none;
+    }
+
     .subsection {
       margin-top: 10px;
     }
@@ -507,7 +532,7 @@
     <header>
       <div>
         <h1>Specialty Meds <span>Explorer</span></h1>
-        <p>A sample tool for exploring rare disease treatments / specialty medications and their endpoints, RWD outcomes, and PROs.</p>
+        <p>A sample tool for exploring rare disease treatments / specialty medications and their endpoints, RWD outcomes, and PROs. For educational/entertainment purposes only, no accuracy implied or intented.</p>
       </div>
     </header>
 
@@ -711,26 +736,179 @@
       return nodes.length ? nodes : [document.createTextNode(text)];
     }
 
-    function tryParseJson(text) {
-      const trimmed = String(text || "").trim();
-      if (!trimmed || (trimmed[0] !== "[" && trimmed[0] !== "{")) return null;
+    function fixMojibake(text) {
+      if (!text || typeof TextDecoder === "undefined") return text;
+      if (!/[ÃÂâ]/.test(text)) return text;
 
-      // Normalize common “JSON-ish” issues: single quotes and smart quotes.
-      const smartQuoteFix = trimmed.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, "\"");
-      const trailingCommaFix = str => str.replace(/,\s*([}\]])/g, "$1");
-      const attempts = [
-        smartQuoteFix,
-        smartQuoteFix.replace(/'([^']*)'/g, "\"$1\""),
-        trailingCommaFix(smartQuoteFix),
-        trailingCommaFix(smartQuoteFix.replace(/'([^']*)'/g, "\"$1\""))
-      ];
+      try {
+        const bytes = Uint8Array.from(text, char => char.charCodeAt(0));
+        const decoded = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+        const originalScore = (text.match(/[ÃÂâ]/g) || []).length;
+        const decodedScore = (decoded.match(/[ÃÂâ]/g) || []).length;
+        return decodedScore < originalScore ? decoded : text;
+      } catch (e) {
+        return text;
+      }
+    }
 
-      for (const attempt of attempts) {
-        try {
-          return JSON.parse(attempt);
-        } catch (e) {
+    function extractJsonSubstring(value) {
+      if (!value) return null;
+
+      const firstBrace = value.indexOf("{");
+      const firstBracket = value.indexOf("[");
+      if (firstBrace === -1 && firstBracket === -1) return null;
+
+      let startIndex;
+      let openChar;
+      let closeChar;
+
+      if (firstBrace === -1 || (firstBracket !== -1 && firstBracket < firstBrace)) {
+        startIndex = firstBracket;
+        openChar = "[";
+        closeChar = "]";
+      } else {
+        startIndex = firstBrace;
+        openChar = "{";
+        closeChar = "}";
+      }
+
+      let depth = 0;
+      let inString = false;
+      let stringChar = "";
+      let escaped = false;
+
+      for (let i = startIndex; i < value.length; i += 1) {
+        const ch = value[i];
+        if (inString) {
+          if (escaped) {
+            escaped = false;
+          } else if (ch === "\\") {
+            escaped = true;
+          } else if (ch === stringChar) {
+            inString = false;
+            stringChar = "";
+          }
           continue;
         }
+
+        if (ch === "\"" || ch === "'") {
+          inString = true;
+          stringChar = ch;
+          continue;
+        }
+
+        if (ch === openChar) depth += 1;
+        if (ch === closeChar) {
+          depth -= 1;
+          if (depth === 0) {
+            return value.slice(startIndex, i + 1);
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function parseJsonLines(text) {
+      const lines = String(text || "")
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+
+      if (lines.length < 2) return null;
+
+      const jsonLines = lines.filter(line => line.startsWith("{") || line.startsWith("["));
+      if (jsonLines.length < 2) return null;
+
+      const parsedItems = [];
+      for (const line of jsonLines) {
+        const parsed = tryParseJson(line);
+        if (parsed == null) return null;
+        if (Array.isArray(parsed)) {
+          parsedItems.push(...parsed);
+        } else {
+          parsedItems.push(parsed);
+        }
+      }
+
+      return parsedItems.length ? parsedItems : null;
+    }
+
+    function tryParseJson(text) {
+      const trimmed = fixMojibake(String(text || "").trim());
+      if (!trimmed) return null;
+
+      const candidates = new Set();
+      const addCandidate = value => {
+        if (!value) return;
+        const cleaned = String(value).trim();
+        if (cleaned) candidates.add(cleaned);
+      };
+
+      addCandidate(trimmed);
+      addCandidate(trimmed.replace(/^[\uFEFF\u200B\u200C\u200D]+/, ""));
+
+      if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) ||
+          (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+        addCandidate(trimmed.slice(1, -1));
+      }
+
+      if (trimmed.includes('""')) {
+        addCandidate(trimmed.replace(/""/g, "\""));
+      }
+
+      const unescaped = trimmed
+        .replace(/\\"/g, "\"")
+        .replace(/\\'/g, "'")
+        .replace(/\\\\/g, "\\");
+      if (unescaped !== trimmed) {
+        addCandidate(unescaped);
+      }
+
+      const smartQuoteFix = value =>
+        value.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, "\"");
+      const trailingCommaFix = str => str.replace(/,\s*([}\]])/g, "$1");
+
+      function parseAttempt(value) {
+        const normalized = smartQuoteFix(value);
+        const attempts = [
+          normalized,
+          normalized.replace(/'([^']*)'/g, "\"$1\""),
+          trailingCommaFix(normalized),
+          trailingCommaFix(normalized.replace(/'([^']*)'/g, "\"$1\""))
+        ];
+
+        for (const attempt of attempts) {
+          try {
+            return JSON.parse(attempt);
+          } catch (e) {
+            continue;
+          }
+        }
+        return null;
+      }
+
+      function parseCandidate(value) {
+        if (!value) return null;
+        const direct = parseAttempt(value);
+        if (direct != null) return direct;
+
+        const extracted = extractJsonSubstring(value);
+        if (extracted && extracted !== value) {
+          return parseAttempt(extracted);
+        }
+        return null;
+      }
+
+      for (const candidate of candidates) {
+        const parsed = parseCandidate(candidate);
+        if (parsed == null) continue;
+
+        if (typeof parsed === "string") {
+          const nested = tryParseJson(parsed);
+          if (nested != null) return nested;
+        }
+        return parsed;
       }
 
       return null;
@@ -760,6 +938,7 @@
             parsed.forEach(entry => {
               const li = document.createElement("li");
               const citationText = entry.citation || entry.title || entry.reference || entry.url || "";
+              const description = entry.description || entry.notes || entry.summary || "";
               if (entry.url) {
                 const link = document.createElement("a");
                 link.href = entry.url;
@@ -769,6 +948,12 @@
                 li.appendChild(link);
               } else if (citationText) {
                 linkifyTextNodes(citationText).forEach(node => li.appendChild(node));
+              }
+              if (description) {
+                if (li.childNodes.length) {
+                  li.appendChild(document.createTextNode(" — "));
+                }
+                linkifyTextNodes(description).forEach(node => li.appendChild(node));
               }
               if (entry.category) {
                 const badge = document.createElement("span");
@@ -791,15 +976,65 @@
             return true;
           }
 
+          const table = buildObjectTable(parsed);
+          if (table) {
+            element.appendChild(table);
+            return true;
+          }
+
           const ul = document.createElement("ul");
           parsed.forEach(entry => {
             const li = document.createElement("li");
+            const label =
+              entry.title ||
+              entry.name ||
+              entry.opportunity ||
+              entry.indication ||
+              entry.label ||
+              entry.study;
+            const description =
+              entry.description ||
+              entry.notes ||
+              entry.detail ||
+              entry.summary ||
+              entry.comment;
+            const timing = entry.approval_date || entry.date || entry.year || entry.timeline;
+            const badgeText = entry.category || entry.phase || entry.type;
             const parts = [];
-            if (entry.indication) parts.push(entry.indication);
-            if (entry.approval_date) parts.push(`Approval: ${entry.approval_date}`);
-            if (entry.notes) parts.push(entry.notes);
-            const text = parts.join(" — ") || JSON.stringify(entry);
+
+            if (label && description) {
+              parts.push(`${label} — ${description}`);
+            } else if (label || description) {
+              parts.push(label || description);
+            }
+
+            if (timing) parts.push(timing);
+
+            const text = parts.join(" | ") || JSON.stringify(entry);
             linkifyTextNodes(text).forEach(node => li.appendChild(node));
+
+            if (entry.url && !li.querySelector("a")) {
+              const link = document.createElement("a");
+              link.href = entry.url;
+              link.target = "_blank";
+              link.rel = "noopener noreferrer";
+              link.style.marginLeft = "6px";
+              link.textContent = "Link";
+              li.appendChild(link);
+            }
+
+            if (badgeText) {
+              const badge = document.createElement("span");
+              badge.style.display = "inline-block";
+              badge.style.marginLeft = "6px";
+              badge.style.padding = "2px 8px";
+              badge.style.borderRadius = "10px";
+              badge.style.background = "rgba(30,136,229,0.08)";
+              badge.style.color = "#1f2a44";
+              badge.style.fontSize = "0.78rem";
+              badge.textContent = badgeText;
+              li.appendChild(badge);
+            }
             ul.appendChild(li);
           });
           element.appendChild(ul);
@@ -959,8 +1194,13 @@
     }
 
     function renderValueInto(element, rawValue) {
-      const text = String(rawValue || "").trim();
+      const text = fixMojibake(String(rawValue || "").trim());
       if (!text) return;
+
+      const jsonLines = parseJsonLines(text);
+      if (jsonLines && renderJsonValue(element, jsonLines)) {
+        return;
+      }
 
       const parsedJson = tryParseJson(text);
       if (parsedJson && renderJsonValue(element, parsedJson)) {
@@ -1077,6 +1317,17 @@
       return heading;
     }
 
+    function collectObjectKeys(entries) {
+      const keys = [];
+      entries.forEach(entry => {
+        if (!entry || typeof entry !== "object" || Array.isArray(entry)) return;
+        Object.keys(entry).forEach(key => {
+          if (!keys.includes(key)) keys.push(key);
+        });
+      });
+      return keys;
+    }
+
     function buildDataTable(rows) {
       const wrapper = document.createElement("div");
       wrapper.className = "data-table-wrapper";
@@ -1093,6 +1344,49 @@
         tr.appendChild(td);
         table.appendChild(tr);
       });
+
+      wrapper.appendChild(table);
+      return wrapper;
+    }
+
+    function buildObjectTable(entries) {
+      if (!Array.isArray(entries) || entries.length === 0) return null;
+      const headers = collectObjectKeys(entries);
+      if (headers.length === 0 || headers.length > 6) return null;
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "data-table-wrapper";
+      const table = document.createElement("table");
+      table.className = "data-table data-table--matrix";
+
+      const thead = document.createElement("thead");
+      const headRow = document.createElement("tr");
+      headers.forEach(key => {
+        const th = document.createElement("th");
+        th.textContent = formatColumnHeader(key);
+        headRow.appendChild(th);
+      });
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      entries.forEach(entry => {
+        const tr = document.createElement("tr");
+        headers.forEach(key => {
+          const td = document.createElement("td");
+          const value = entry ? entry[key] : "";
+          if (value == null || String(value).trim() === "") {
+            td.textContent = "-";
+          } else if (typeof value === "object") {
+            renderJsonValue(td, value);
+          } else {
+            renderValueInto(td, value);
+          }
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
 
       wrapper.appendChild(table);
       return wrapper;
