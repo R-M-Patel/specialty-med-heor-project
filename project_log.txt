@@ -6,10 +6,6 @@ It’s the single source of truth so I can resume work with ai platforms anytime
 trying to update link recognition
 updated to link to live google sheet
 
-Version 2 
-Version 2 - live table updates based on columns/data in google sheet
-Milestone 1 - Make the website update to table changes
-Milestone 2 - Link to live rxnorm label page
 
 Version - Parking Lot ideas
 Create list of articles for each medication (relevant trials, posters/presentations from ISPOR)
@@ -21,6 +17,20 @@ now reads just from csv to keep spreadsheet as a live page
 updated ux to be cleaner, deployed webpage
 site is working via pages, updating with live spreadsheet
 
+--
+Version 3
+Version - Stable live updates from sheets, moved to static csv reference
+Milestone 1 - Rendered appropriately, updated UI
+Milestone 2 - Major fixes for poorly rendered sections/HTML
+Unfinished - completed render for trials/details
+
+--
+Version 2 
+Version 2 - live table updates based on columns/data in google sheet
+Milestone 1 - Make the website update to table changes
+Milestone 2 - Link to live rxnorm label page
+
+--
 Version-1 static table pulled from google sheet
 Version-1 complete
 Milestone 0 — Project Setup  [complete]
@@ -31,6 +41,7 @@ Milestone 4 — Tag extraction + filtering  [incomplete, not necessary]
 Milestone 5 — Styling + UX polish  [progressing/complete for initial]
 Milestone 6 — GitHub Pages deployed  [complete]
 Milestone 7 — README + demo script + interview story [complete]
+
 
 
 
