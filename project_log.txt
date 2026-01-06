@@ -18,6 +18,10 @@ updated ux to be cleaner, deployed webpage
 site is working via pages, updating with live spreadsheet
 
 --
+Verison 4
+Last stable working version, made static to maintain. 
+
+--
 Version 3
 Version - Stable live updates from sheets, moved to static csv reference
 Milestone 1 - Rendered appropriately, updated UI
@@ -41,6 +45,7 @@ Milestone 4 — Tag extraction + filtering  [incomplete, not necessary]
 Milestone 5 — Styling + UX polish  [progressing/complete for initial]
 Milestone 6 — GitHub Pages deployed  [complete]
 Milestone 7 — README + demo script + interview story [complete]
+
 
 
 
